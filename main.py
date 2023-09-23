@@ -1,10 +1,15 @@
+# Импорты
 from aiogram import Bot, Dispatcher, executor, types
 import res.markups as nav
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.dispatcher.filters import Text
+from res.config_reader import config
 
-TOKEN_API = "6464996989:AAEiOYmBnlg2Bmb1eU8hKhRW1gCPrnDOy6I"
-bot = Bot(token=TOKEN_API)
+# Объект бота
+TOKEN = config.bot_token.get_secret_value()
+ADMIN_TOKEN = config.admin_bot_token.get_secret_value()
+
+bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
 
