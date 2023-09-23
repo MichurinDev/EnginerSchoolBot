@@ -1,6 +1,6 @@
 # Импорты
 from aiogram import Bot, Dispatcher, executor, types
-import res.markups as nav
+from res.markups import *
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.dispatcher.filters import Text
 from res.config_reader import config
@@ -15,18 +15,12 @@ dp = Dispatcher(bot)
 
 @dp.message_handler(commands=['start'])
 async def help_command(message: types.Message):
-    await message.answer(text="Выберите класс:", reply_markup=nav.keyboard)
+    await message.answer(text="Выберите класс:", reply_markup=keyboard)
 
 
 @dp.callback_query_handler()
 async def choosingTrainingClass(callback_query: types.CallbackQuery):
-    if callback_query.data == "1-4Class" or\
-            callback_query.data == "5-6Class" or\
-            callback_query.data == "7Class" or\
-            callback_query.data == "8Class" or\
-            callback_query.data == "9Class" or\
-            callback_query.data == "10Class" or\
-            callback_query.data == "11Class":
+    if callback_query.data in classes:
         await bot.edit_message_reply_markup(
             chat_id=callback_query.message.chat.id,
             message_id=callback_query.message.message_id,
@@ -35,10 +29,10 @@ async def choosingTrainingClass(callback_query: types.CallbackQuery):
         await bot.send_message(
             callback_query.from_user.id,
             'Выберете свои предметы:',
-            reply_markup=nav.keydoardRepaint(callback_query.data)
+            reply_markup=keydoardRepaint(callback_query.data)
         )
 
-    elif callback_query.data in nav.SubjectsList:
+    elif callback_query.data in SubjectsList:
         # Получаем текущую инлайн-клавиатуру
         current_keyboard = callback_query.message.reply_markup.inline_keyboard
 
@@ -79,9 +73,9 @@ async def choosingTrainingClass(callback_query: types.CallbackQuery):
         await bot.send_message(
             callback_query.from_user.id,
             'Выберите свой часовой пояс:',
-            reply_markup=nav.keyboardTimeZone
+            reply_markup=keyboardTimeZone
         )
-    if callback_query.data in nav.TimeZonesList:
+    if callback_query.data in TimeZonesList:
         await bot.edit_message_reply_markup(
             chat_id=callback_query.message.chat.id,
             message_id=callback_query.message.message_id,
@@ -89,7 +83,7 @@ async def choosingTrainingClass(callback_query: types.CallbackQuery):
         )
         await bot.send_message(callback_query.from_user.id,
                                "Регистрация успешно завершена!",
-                               reply_markup=nav.mainMenu)
+                               reply_markup=mainMenu)
 
 
 @dp.message_handler(Text(equals=[
@@ -104,15 +98,16 @@ async def mainMenu(message: types.Message):
     if message.text == 'Мой профиль 🎓':
         await message.answer(text="Данные профиля:\n" +
                              "Класс:\nПредметы:\nЧасовой пояс")
-    if message.text == 'Мое рассписание 📅':
+    elif message.text == 'Мое рассписание 📅':
         await message.answer(text="Рассписание пользователя")
-    if message.text == 'Настройки ⚙️':
-        await message.answer(text="Настройки", reply_markup=nav.settingsMenu)
-    if message.text == 'Сбросить параметры аккаунта 🔄':
+    elif message.text == 'Настройки ⚙️':
+        await message.answer(text="Настройки", reply_markup=settingsMenu)
+    elif message.text == 'Сбросить параметры аккаунта 🔄':
         await message.answer(text="Сбросить настройки")
-    if message.text == 'Вернуться назад 🔙':
-        await message.answer(text="Главное меню", reply_markup=nav.mainMenu)
+    elif message.text == 'Вернуться назад 🔙':
+        await message.answer(text="Главное меню", reply_markup=mainMenu)
 
 
 if __name__ == "__main__":
+    print("Бот запущен...")
     executor.start_polling(dp, skip_updates=True)
