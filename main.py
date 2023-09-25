@@ -56,10 +56,6 @@ async def start(msg: types.Message):
     if user_by_tgID:
         # Отправляем ее вместе с приветственным сообщением
         # для зарегистрированного пользователя
-        if msg.text == "/start":
-            await bot.send_message(
-                msg.from_user.id, START_TEXT)
-
         await bot.send_message(msg.from_user.id,
                                MENU_TEXT, reply_markup=mainMenu)
         await state.set_state(BotStates.HOME_STATE.state)
