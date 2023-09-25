@@ -3,23 +3,23 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton,\
 
 # --- Тексты ---
 START_TEXT = \
-"""
+    """
 Здравствуйте!
 """
 
 MENU_TEXT = \
-"""
+    """
 Выберите действие:
 """
 
 ACQUAINTANCE_TEXT = \
-"""
+    """
 Давайте познакомимся!
 Введите своё ФИО (отчество при его наличии)
 """
 
 HELP_TEXT = \
-"""
+    """
 Инструкция...
 """
 
@@ -119,8 +119,6 @@ buttons = {
                              callback_data=SubjectsList[5]),
         InlineKeyboardButton(SubjectsList[6],
                              callback_data=SubjectsList[6]),
-        InlineKeyboardButton(SubjectsList[7],
-                             callback_data=SubjectsList[7]),
         InlineKeyboardButton(SubjectsList[7],
                              callback_data=SubjectsList[7])
         ],

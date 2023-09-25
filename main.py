@@ -44,7 +44,9 @@ user_msg = None
 async def start(msg: types.Message):
     global user_msg
 
+    # Сохраняем экземпляр полдьзовательского сообщения
     user_msg = msg
+
     # Берём список всех зарегистрированных пользователей с выборков по ID
     user_by_tgID = cursor.execute(f''' SELECT name FROM UsersInfo
                            WHERE tg_id={msg.from_user.id}''').fetchall()
@@ -59,14 +61,14 @@ async def start(msg: types.Message):
                 msg.from_user.id, START_TEXT)
 
         await bot.send_message(msg.from_user.id,
-                               MENU_TEXT, reply_markup=keyboard)
+                               MENU_TEXT, reply_markup=mainMenu)
         await state.set_state(BotStates.HOME_STATE.state)
 
     else:
         # Отправляем текст с предложением ввести ФИО
         await bot.send_message(
             msg.from_user.id,
-            START_TEXT)
+            START_TEXT, reply_markup=types.ReplyKeyboardRemove())
 
         # Переходим на стадию ввода ФИО
         await bot.send_message(msg.from_user.id, ACQUAINTANCE_TEXT)
@@ -175,7 +177,7 @@ async def get_objects(callback_query: types.CallbackQuery):
             reply_markup=keyboardTimeZone
         )
 
-        # Переходим на стадию выбора часового пояса
+        # Переходим на стадию выбора предметов
         state = dp.current_state(user=callback_query.from_user.id)
         await state.set_state(BotStates.GET_TIMEZONE_STATE.state)
 
@@ -196,22 +198,48 @@ async def get_timezone(callback_query: types.CallbackQuery):
         "Регистрация успешно завершена!"
     )
 
-    print(_temp)
+    # Создаём запись в БД
+    query = f"""INSERT INTO UsersInfo (tg_id, type, name,
+    class, subjects, timezone) VALUES (?, ?, ?, ?, ?, ?)"""
+    cursor.execute(query,
+                   (user_msg.from_user.id, "Ученик", _temp[0],
+                    _temp[1], ";".join(_temp[2]), _temp[3]))
+    conn.commit()
+
+    _temp = None
+
     await start(user_msg)
 
 
 @dp.message_handler(state=BotStates.HOME_STATE)
-async def mainMenu(msg: types.Message):
-    if msg.text == 'Мой профиль 🎓':
-        await bot.send_message(msg.from_user.id, "Данные профиля:\n" +
-                               "Класс:\nПредметы:\nЧасовой пояс")
+async def main_menu(msg: types.Message):
+    if msg.text == "/start":
+        await start(msg)
+    elif msg.text == "/help":
+        await help(msg)
+    elif msg.text == 'Мой профиль 🎓':
+        users_data = cursor.execute("""SELECT name, type, class, subjects,
+                                    timeZone FROM UsersInfo WHERE tg_id=?""",
+                                    (msg.from_user.id,)).fetchall()
+        await bot.send_message(
+            msg.from_user.id,
+            "Данные профиля\n\n" +
+            f"ФИО: {users_data[0][0]}\n" +
+            f"Тип пользователя: {users_data[0][1]}\n" +
+            f"Класс: {users_data[0][2]}\n" +
+            f"Часовой пояс: {users_data[0][4]}\n\n" +
+            "Предметы:\n- " + '\n- '.join(users_data[0][3].split(";"))
+            )
     elif msg.text == 'Мое рассписание 📅':
         await bot.send_message(msg.from_user.id, "Рассписание пользователя")
     elif msg.text == 'Настройки ⚙️':
         await bot.send_message(msg.from_user.id, "Настройки",
                                reply_markup=settingsMenu)
     elif msg.text == 'Сбросить параметры аккаунта 🔄':
-        await bot.send_message(msg.from_user.id, "Сбросить настройки")
+        cursor.execute("""DELETE FROM usersInfo WHERE tg_id=?""",
+                       (msg.from_user.id,))
+        conn.commit()
+        await start(user_msg)
     elif msg.text == 'Вернуться назад 🔙':
         await bot.send_message(msg.from_user.id, "Главное меню",
                                reply_markup=mainMenu)
