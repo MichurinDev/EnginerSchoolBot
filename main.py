@@ -1,8 +1,12 @@
 # Импорты
 from aiogram import Bot, Dispatcher, executor, types
+from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
+
+import sqlite3
+
 from res.markups import *
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.dispatcher.filters import Text
 from res.config_reader import config
 
 # Объект бота
@@ -10,32 +14,120 @@ TOKEN = config.bot_token.get_secret_value()
 ADMIN_TOKEN = config.admin_bot_token.get_secret_value()
 
 bot = Bot(token=TOKEN)
-dp = Dispatcher(bot)
+# Диспетчер
+dp = Dispatcher(bot, storage=MemoryStorage())
+dp.middleware.setup(LoggingMiddleware())
+
+# Подгружаем БД
+conn = sqlite3.connect('res/data/EnginerSchool.db')
+cursor = conn.cursor()
 
 
+# Состояния бота
+class BotStates(StatesGroup):
+    START_STATE = State()
+    HOME_STATE = State()
+
+    GET_USERNAME_STATE = State()
+    GET_CLASS_STATE = State()
+    GET_OBJECTS_STATE = State()
+    GET_TIMEZONE_STATE = State()
+
+
+# Переменные для хранения временных данных
+_temp = None
+user_msg = None
+
+
+# Хэндлер на команду /start
 @dp.message_handler(commands=['start'])
-async def help_command(message: types.Message):
-    await message.answer(text="Выберите класс:", reply_markup=keyboard)
+async def start(msg: types.Message):
+    global user_msg
 
+    user_msg = msg
+    # Берём список всех зарегистрированных пользователей с выборков по ID
+    user_by_tgID = cursor.execute(f''' SELECT name FROM UsersInfo
+                           WHERE tg_id={msg.from_user.id}''').fetchall()
 
-@dp.callback_query_handler()
-async def choosingTrainingClass(callback_query: types.CallbackQuery):
-    if callback_query.data in classes:
-        await bot.edit_message_reply_markup(
-            chat_id=callback_query.message.chat.id,
-            message_id=callback_query.message.message_id,
-            reply_markup=None  # Это уберет старую клавиатуру
-        )
+    state = dp.current_state(user=msg.from_user.id)
+
+    if user_by_tgID:
+        # Отправляем ее вместе с приветственным сообщением
+        # для зарегистрированного пользователя
+        if msg.text == "/start":
+            await bot.send_message(
+                msg.from_user.id, START_TEXT)
+
+        await bot.send_message(msg.from_user.id,
+                               MENU_TEXT, reply_markup=keyboard)
+        await state.set_state(BotStates.HOME_STATE.state)
+
+    else:
+        # Отправляем текст с предложением ввести ФИО
         await bot.send_message(
-            callback_query.from_user.id,
-            'Выберете свои предметы:',
-            reply_markup=keydoardRepaint(callback_query.data)
-        )
+            msg.from_user.id,
+            START_TEXT)
 
-    elif callback_query.data in SubjectsList:
-        # Получаем текущую инлайн-клавиатуру
-        current_keyboard = callback_query.message.reply_markup.inline_keyboard
+        # Переходим на стадию ввода ФИО
+        await bot.send_message(msg.from_user.id, ACQUAINTANCE_TEXT)
+        await state.set_state(BotStates.GET_USERNAME_STATE.state)
 
+
+# Хэндлер на команду /help
+@dp.message_handler(commands=['help'])
+async def help(msg: types.Message):
+    await bot.send_message(msg.from_user.id, HELP_TEXT)
+
+
+@dp.message_handler(state=BotStates.GET_USERNAME_STATE)
+async def get_username(msg: types.Message):
+    global _temp
+
+    # Сохраняем имя
+    _temp = [msg.text]
+
+    await bot.send_message(
+        msg.from_user.id,
+        "Выберите класс:",
+        reply_markup=keyboard
+    )
+
+    # Переходим на стадию ввода класса
+    state = dp.current_state(user=msg.from_user.id)
+    await state.set_state(BotStates.GET_CLASS_STATE.state)
+
+
+@dp.callback_query_handler(state=BotStates.GET_CLASS_STATE)
+async def get_class(callback_query: types.CallbackQuery):
+    global _temp
+
+    # Сохраняем класс
+    _temp.append(callback_query.data)
+
+    await bot.edit_message_reply_markup(
+        chat_id=callback_query.message.chat.id,
+        message_id=callback_query.message.message_id,
+        reply_markup=None  # Это уберет старую клавиатуру
+    )
+    await bot.send_message(
+        callback_query.from_user.id,
+        'Выберете свои предметы:',
+        reply_markup=keydoardRepaint(callback_query.data)
+    )
+
+    # Переходим на стадию выбора предметов
+    state = dp.current_state(user=callback_query.from_user.id)
+    await state.set_state(BotStates.GET_OBJECTS_STATE.state)
+
+
+@dp.callback_query_handler(state=BotStates.GET_OBJECTS_STATE)
+async def get_objects(callback_query: types.CallbackQuery):
+    global _temp
+
+    # Получаем текущую инлайн-клавиатуру
+    current_keyboard = callback_query.message.reply_markup.inline_keyboard
+
+    if callback_query.data in SubjectsList:
         # Находим индекс кнопки, которую хотим изменить
         button_index = None
 
@@ -64,48 +156,65 @@ async def choosingTrainingClass(callback_query: types.CallbackQuery):
             message_id=callback_query.message.message_id,
             reply_markup=InlineKeyboardMarkup(inline_keyboard=current_keyboard)
         )
-    if callback_query.data == "Далее1":
+    elif callback_query.data == "Далее1":
         await bot.edit_message_reply_markup(
             chat_id=callback_query.message.chat.id,
             message_id=callback_query.message.message_id,
             reply_markup=None  # Это уберет старую клавиатуру
         )
+
+        # Сохраняем выбранные предметы
+        objects = [k[:-2] for k in list(map(lambda x: x[0].text,
+                                            current_keyboard)) if "✅" in k]
+        _temp.append(objects)
+
+        # Отправляем сообщение о выборе часового пояса
         await bot.send_message(
             callback_query.from_user.id,
             'Выберите свой часовой пояс:',
             reply_markup=keyboardTimeZone
         )
-    if callback_query.data in TimeZonesList:
-        await bot.edit_message_reply_markup(
-            chat_id=callback_query.message.chat.id,
-            message_id=callback_query.message.message_id,
-            reply_markup=None  # Это уберет старую клавиатуру
-        )
-        await bot.send_message(callback_query.from_user.id,
-                               "Регистрация успешно завершена!",
+
+        # Переходим на стадию выбора часового пояса
+        state = dp.current_state(user=callback_query.from_user.id)
+        await state.set_state(BotStates.GET_TIMEZONE_STATE.state)
+
+
+@dp.callback_query_handler(state=BotStates.GET_TIMEZONE_STATE)
+async def get_timezone(callback_query: types.CallbackQuery):
+    global _temp
+
+    _temp.append(callback_query.data)
+
+    await bot.edit_message_reply_markup(
+        chat_id=callback_query.message.chat.id,
+        message_id=callback_query.message.message_id,
+        reply_markup=None  # Это уберет старую клавиатуру
+    )
+    await bot.send_message(
+        callback_query.from_user.id,
+        "Регистрация успешно завершена!"
+    )
+
+    print(_temp)
+    await start(user_msg)
+
+
+@dp.message_handler(state=BotStates.HOME_STATE)
+async def mainMenu(msg: types.Message):
+    if msg.text == 'Мой профиль 🎓':
+        await bot.send_message(msg.from_user.id, "Данные профиля:\n" +
+                               "Класс:\nПредметы:\nЧасовой пояс")
+    elif msg.text == 'Мое рассписание 📅':
+        await bot.send_message(msg.from_user.id, "Рассписание пользователя")
+    elif msg.text == 'Настройки ⚙️':
+        await bot.send_message(msg.from_user.id, "Настройки",
+                               reply_markup=settingsMenu)
+    elif msg.text == 'Сбросить параметры аккаунта 🔄':
+        await bot.send_message(msg.from_user.id, "Сбросить настройки")
+    elif msg.text == 'Вернуться назад 🔙':
+        await bot.send_message(msg.from_user.id, "Главное меню",
                                reply_markup=mainMenu)
-
-
-@dp.message_handler(Text(equals=[
-    "Мой профиль 🎓",
-    "Мое рассписание 📅",
-    "Настройки ⚙️",
-    "Вернуться назад 🔙",
-    "Сбросить параметры аккаунта 🔄"
-    ]))
-async def mainMenu(message: types.Message):
-    # Сообение при нажатии на "мой профиль"
-    if message.text == 'Мой профиль 🎓':
-        await message.answer(text="Данные профиля:\n" +
-                             "Класс:\nПредметы:\nЧасовой пояс")
-    elif message.text == 'Мое рассписание 📅':
-        await message.answer(text="Рассписание пользователя")
-    elif message.text == 'Настройки ⚙️':
-        await message.answer(text="Настройки", reply_markup=settingsMenu)
-    elif message.text == 'Сбросить параметры аккаунта 🔄':
-        await message.answer(text="Сбросить настройки")
-    elif message.text == 'Вернуться назад 🔙':
-        await message.answer(text="Главное меню", reply_markup=mainMenu)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,28 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton,\
     InlineKeyboardButton, InlineKeyboardMarkup
 
+# --- Тексты ---
+START_TEXT = \
+"""
+Здравствуйте!
+"""
+
+MENU_TEXT = \
+"""
+Выберите действие:
+"""
+
+ACQUAINTANCE_TEXT = \
+"""
+Давайте познакомимся!
+Введите своё ФИО (отчество при его наличии)
+"""
+
+HELP_TEXT = \
+"""
+Инструкция...
+"""
+
 
 def keydoardRepaint(nameMarkup):
     new_buttons = buttons[nameMarkup]
@@ -67,13 +89,13 @@ TimeZonesList = [
 ]
 
 classes = [
-    "1-4Class",
-    "5-6Class",
-    "7Class",
-    "8Class",
-    "9Class",
-    "10Class",
-    "11Class"
+    "1-4 класс",
+    "5-6 класс",
+    "7 класс",
+    "8 класс",
+    "9 класс",
+    "10 класс",
+    "11 класс"
 ]
 
 # Создаем кнопки с предметами для каждого класса
@@ -181,13 +203,13 @@ buttons = {
 
 # список кнопок с классами и само меню с классами
 buttonsClasses = [
-    InlineKeyboardButton("1-4 класс", callback_data=classes[0]),
-    InlineKeyboardButton("5-6 класс", callback_data=classes[1]),
-    InlineKeyboardButton("7 класс", callback_data=classes[2]),
-    InlineKeyboardButton("8 класс", callback_data=classes[3]),
-    InlineKeyboardButton("9 класс", callback_data=classes[4]),
-    InlineKeyboardButton("10 класс", callback_data=classes[5]),
-    InlineKeyboardButton("11 класс", callback_data=classes[6])
+    InlineKeyboardButton(classes[0], callback_data=classes[0]),
+    InlineKeyboardButton(classes[1], callback_data=classes[1]),
+    InlineKeyboardButton(classes[2], callback_data=classes[2]),
+    InlineKeyboardButton(classes[3], callback_data=classes[3]),
+    InlineKeyboardButton(classes[4], callback_data=classes[4]),
+    InlineKeyboardButton(classes[5], callback_data=classes[5]),
+    InlineKeyboardButton(classes[6], callback_data=classes[6])
 ]
 
 buttonsClasses = [buttonsClasses[i:i + 2]
