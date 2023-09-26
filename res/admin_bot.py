@@ -1,7 +1,7 @@
 # Импорты
-from res.config_reader import config
-from res.reply_texts import *
-from res.SendNotify import send_notify
+from modules.config_reader import config
+from modules.markups import *
+from modules.SendNotify import send_notify
 
 from aiogram import Bot, types, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage

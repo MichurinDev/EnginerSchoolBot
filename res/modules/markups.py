@@ -23,6 +23,13 @@ HELP_TEXT = \
 Инструкция...
 """
 
+ADMINISTRATOR_ACCESS_ERROR = \
+    """
+У вас недостаточнео прав для выполнения данного действия!
+"""
+
+NOTIFY_PATTERN_TEXT = """"""
+
 
 def keydoardRepaint(nameMarkup):
     new_buttons = buttons[nameMarkup]
