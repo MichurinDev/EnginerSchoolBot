@@ -6,8 +6,8 @@ from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
 import sqlite3
 
-from res.markups import *
-from res.config_reader import config
+from modules.markups import *
+from modules.config_reader import config
 
 # Объект бота
 TOKEN = config.bot_token.get_secret_value()
