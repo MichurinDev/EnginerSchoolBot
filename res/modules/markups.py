@@ -1,5 +1,10 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton,\
     InlineKeyboardButton, InlineKeyboardMarkup
+import sqlite3
+
+# Подгружаем БД
+conn = sqlite3.connect('res/data/EnginerSchool.db')
+cursor = conn.cursor()
 
 # --- Тексты ---
 START_TEXT = \
@@ -62,17 +67,17 @@ settingsMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(btnInfo, btnMoney)
 # --- Список предметов и часовых поясов(вспомогательное) ---
 SubjectsList = [
     "Занимательная лаборатория",
-    "Математика база",
-    "Физика база",
-    "Математика углубленный",
-    "Физика углубленный",
-    "Математика Дальний Восток",
-    "Физика Дальний Восток",
+    "Математика Базовый уровень",
+    "Физика Базовый уровень",
+    "Математика Углубленный уровень",
+    "Физика Углубленный уровень",
+    "Математика ДФО",
+    "Физика ДФО",
     "Основы проектной деятельности",
-    "Химия база",
+    "Химия Базовый уровень",
     "Информатика ОГЭ",
     "Русский язык ОГЭ",
-    "Химия углубленный",
+    "Химия Углубленный уровень",
     "Информатика ЕГЭ",
     "Русский язык ЕГЭ",
     "Технологические уроки",
@@ -81,29 +86,13 @@ SubjectsList = [
     "Химия ЕГЭ"
 ]
 
-TimeZonesList = [
-    "МСК-1 (Калининградское)",
-    "МСК+0 (Московское)",
-    "МСК+1 (Самарское)",
-    "МСК+2 (Екатеринбургское)",
-    "МСК+3 (Омское)",
-    "МСК+4 (Красноярское)",
-    "МСК+5 (Иркутское)",
-    "МСК+6 (Якутское)",
-    "МСК+7 (Владивостокское)",
-    "МСК+8 (Магаданское)",
-    "МСК+9 (Камчатское)",
-]
+TimeZonesList = list(map(lambda x: x[0],
+                         cursor.execute("SELECT name FROM Timezones")
+                         .fetchall()))
 
-classes = [
-    "1-4 класс",
-    "5-6 класс",
-    "7 класс",
-    "8 класс",
-    "9 класс",
-    "10 класс",
-    "11 класс"
-]
+classes = list(map(lambda x: x[0],
+                   cursor.execute("SELECT name FROM Classes")
+                   .fetchall()))
 
 # Создаем кнопки с предметами для каждого класса
 buttons = {
@@ -113,7 +102,20 @@ buttons = {
     classes[1]: [InlineKeyboardButton(
         SubjectsList[0],
         callback_data=SubjectsList[0])],
-    classes[2]: [
+    classes[2]: [InlineKeyboardButton(
+        SubjectsList[0],
+        callback_data=SubjectsList[0])],
+    classes[3]: [InlineKeyboardButton(
+        SubjectsList[0],
+        callback_data=SubjectsList[0])],
+    classes[4]: [InlineKeyboardButton(
+        SubjectsList[0],
+        callback_data=SubjectsList[0])],
+    classes[5]: [InlineKeyboardButton(
+        SubjectsList[0],
+        callback_data=SubjectsList[0])],
+
+    classes[6]: [
         InlineKeyboardButton(SubjectsList[1],
                              callback_data=SubjectsList[1]),
         InlineKeyboardButton(SubjectsList[2],
@@ -129,7 +131,7 @@ buttons = {
         InlineKeyboardButton(SubjectsList[7],
                              callback_data=SubjectsList[7])
         ],
-    classes[3]: [
+    classes[7]: [
         InlineKeyboardButton(SubjectsList[1],
                              callback_data=SubjectsList[1]),
         InlineKeyboardButton(SubjectsList[2],
@@ -149,7 +151,7 @@ buttons = {
         InlineKeyboardButton(SubjectsList[7],
                              callback_data=SubjectsList[7])
     ],
-    classes[4]: [
+    classes[8]: [
         InlineKeyboardButton(SubjectsList[1],
                              callback_data=SubjectsList[1]),
         InlineKeyboardButton(SubjectsList[2],
@@ -171,7 +173,7 @@ buttons = {
         InlineKeyboardButton(SubjectsList[10],
                              callback_data=SubjectsList[10])
     ],
-    classes[5]: [
+    classes[9]: [
         InlineKeyboardButton(SubjectsList[3],
                              callback_data=SubjectsList[3]),
         InlineKeyboardButton(SubjectsList[4],
@@ -187,7 +189,7 @@ buttons = {
         InlineKeyboardButton(SubjectsList[14],
                              callback_data=SubjectsList[14])
     ],
-    classes[6]: [
+    classes[10]: [
         InlineKeyboardButton(SubjectsList[15],
                              callback_data=SubjectsList[15]),
         InlineKeyboardButton(SubjectsList[16],
@@ -207,28 +209,15 @@ buttons = {
 
 
 # список кнопок с классами и само меню с классами
-buttonsClasses = [
-    InlineKeyboardButton(classes[0], callback_data=classes[0]),
-    InlineKeyboardButton(classes[1], callback_data=classes[1]),
-    InlineKeyboardButton(classes[2], callback_data=classes[2]),
-    InlineKeyboardButton(classes[3], callback_data=classes[3]),
-    InlineKeyboardButton(classes[4], callback_data=classes[4]),
-    InlineKeyboardButton(classes[5], callback_data=classes[5]),
-    InlineKeyboardButton(classes[6], callback_data=classes[6])
-]
-
-buttonsClasses = [buttonsClasses[i:i + 2]
-                  for i in range(0, len(buttonsClasses), 2)]
+buttonsClasses = [InlineKeyboardButton(c, callback_data=c)
+                  for c in classes]
 keyboard = InlineKeyboardMarkup(row_width=1)
-for row in buttonsClasses:
-    keyboard.add(*row)
+for btn in buttonsClasses:
+    keyboard.add(btn)
 
 # список кнопок часовых поясов и само меню с часовыми поясами
 buttonTimeZones = [InlineKeyboardButton(TZ, callback_data=TZ)
                    for TZ in TimeZonesList]
-buttonTimeZones = [buttonTimeZones[i:i + 2]
-                   for i in range(0, len(buttonTimeZones), 2)]
 keyboardTimeZone = InlineKeyboardMarkup(row_width=1)
-
-for row in buttonTimeZones:
-    keyboardTimeZone.add(*row)
+for btn in buttonTimeZones:
+    keyboardTimeZone.add(btn)
