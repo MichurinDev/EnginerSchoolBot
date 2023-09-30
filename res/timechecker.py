@@ -107,6 +107,8 @@ async def checkTime():
         current_time = datetime.now(pytz.timezone("Europe/Moscow")).time()
         if current_time.minute == 45:
             await checkSubjects()
+        elif current_time.minute == 0:
+            await mornind_and_evening_notifycations()
         await asyncio.sleep(60)
 
 
