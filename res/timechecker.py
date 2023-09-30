@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 import asyncio
 import pytz
 import sqlite3
-from res.modules.config_reader import config
+
 
 # Подключаем БД
-conn = sqlite3.connect('res/data/EnginerSchool_test7Clas.db')
+conn = sqlite3.connect('res/data/EnginerSchool.db')
 cursor = conn.cursor()
 
 async def checkSubjects():
