@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime, date
+from datetime import timedelta, datetime, date, time
 import sqlite3
 from modules.markups import *
 from modules.SendNotify import send_notify
@@ -20,8 +20,8 @@ async def mornind_and_evening_notifycations():
     _isSend = False
 
     while True:
-        moscow_time = datetime.now(pytz.timezone('Europe/Moscow'))
-        # moscow_time = datetime(2023, 10, 28, 9)
+        # moscow_time = datetime.now(pytz.timezone('Europe/Moscow'))
+        moscow_time = datetime(2023, 10, 28, 9)
         # moscow_time = datetime(2023, 10, 26, 17)
 
         if moscow_time.time().minute == 0:
@@ -62,10 +62,11 @@ async def mornind_and_evening_notifycations():
                                     lambda x: user[1] in x[3], timetable))
 
                                 if timetable:
-                                    send_text += "Расписание на " +\
+                                    send_text += "📝 Твоё расписание на " +\
                                         f"{d.strftime('%d.%m.%Y')}:"
                                     for event in timetable:
-                                        send_text += f"\nНазвание: {event[0]}"
+                                        send_text += f"\n{' ' * 7}" +\
+                                            f"•Название: {event[0]}"
                                         send_text += "\nВремя: " +\
                                             f"{event[1]} - {event[2]}\n"
 
@@ -108,6 +109,9 @@ async def checkTime():
     while True:
         # Время сейчас для тестов
         current_time = datetime.now(pytz.timezone("Europe/Moscow")).time()
+
+        # current_time = time(9, 0, 0)
+
         if current_time.minute == 45:
             await checkSubjects()
         elif current_time.minute == 0:

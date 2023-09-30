@@ -248,20 +248,20 @@ async def main_menu(msg: types.Message):
                            (msg.from_user.id, ))
             .fetchall()[0][0].split()[0][-2:])
 
-        # now_date = datetime.now(pytz.timezone("Europe/Moscow")) + \
-        #     timedelta(hours=delta)
-        # day = now_date.strftime('%d.%m.%Y')
-        day = "26.10.2023"
+        now_date = datetime.now(pytz.timezone("Europe/Moscow")) + \
+            timedelta(hours=delta)
+        day = now_date.strftime('%d.%m.%Y')
+        # day = "26.10.2023"
 
         dt = datetime.strptime(day, '%d.%m.%Y')
-        start = dt - timedelta(days=dt.weekday())
+        start_date = dt - timedelta(days=dt.weekday())
 
-        send_text = "Твоё расписание на эту неделю📝\n"
+        send_text = "Твоё расписание на эту неделю 📝\n"
 
         tt = {}
 
         for i in range(7):
-            new_date = start + timedelta(days=i)
+            new_date = start_date + timedelta(days=i)
             events = timetable_on_date(new_date.date(), cursor)
 
             wd = f"\n✅ {new_date.date().strftime('%d.%m')} " +\
