@@ -96,7 +96,9 @@ async def checkSubjects():
 
     # Тут лежит список [id, предмет] нужно отправить уведомление
     # данным пользователям о том что у них этот предмет через 15 минут
-    print(usersGoNotification)
+    for user in usersGoNotification:
+        send_text = f"Через 15 минут начаинается урок {user[1]}"
+        send_notify(TOKEN, send_text, user[0])
 
 
 async def checkTime():
