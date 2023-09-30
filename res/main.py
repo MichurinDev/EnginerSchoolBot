@@ -19,7 +19,7 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 dp.middleware.setup(LoggingMiddleware())
 
 # Подгружаем БД
-conn = sqlite3.connect('res/data/EnginerSchool.db')
+conn = sqlite3.connect('res/data/EnginerSchool_test7Class.db')
 cursor = conn.cursor()
 
 
@@ -173,7 +173,7 @@ async def get_objects(callback_query: types.CallbackQuery):
             reply_markup=keyboardTimeZone
         )
 
-        # Переходим на стадию выбора предметов
+        # Переходим на стадию выбора часового пояса
         state = dp.current_state(user=callback_query.from_user.id)
         await state.set_state(BotStates.GET_TIMEZONE_STATE.state)
 
@@ -194,7 +194,7 @@ async def get_timezone(callback_query: types.CallbackQuery):
         "Регистрация успешно завершена!"
     )
 
-    # Создаём запись в БД
+    # --- Создаём запись в БД ---
     query = f"""INSERT INTO UsersInfo (tg_id, type, name,
     class, subjects, timezone) VALUES (?, ?, ?, ?, ?, ?)"""
     cursor.execute(query,
