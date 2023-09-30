@@ -1,5 +1,4 @@
 from datetime import timedelta, datetime, date
-import pytz
 import sqlite3
 from modules.markups import *
 from modules.SendNotify import send_notify
@@ -47,16 +46,13 @@ while True:
                                            (tz,)).fetchall()
 
                     if users:
-                        print("CALL")
                         for user in users:
                             send_text = ""
 
                             if hour == times[0]:
                                 timetable = timetable_on_date(d, cursor)
-                                print(d)
                             elif hour == times[1]:
                                 d += timedelta(days=1)
-                                print(d)
                                 timetable = timetable_on_date(d, cursor)
 
                             timetable = list(filter(lambda x: user[1] in x[3],
@@ -71,8 +67,6 @@ while True:
                                         f"\nВремя: {event[1]} - {event[2]}\n"
 
                                 send_notify(TOKEN, send_text, user[0])
-                            else:
-                                print("Занятия не найдены")
             _isSend = True
     else:
         _isSend = False
