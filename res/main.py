@@ -42,6 +42,17 @@ _temp = None
 user_msg = None
 
 
+WEEKDAYS = {
+    0: "Понедельник",
+    1: "Вторник",
+    2: "Среда",
+    3: "Четверг",
+    4: "Пятница",
+    5: "Суббота",
+    6: "Воскресенье"
+}
+
+
 # Хэндлер на команду /start
 @dp.message_handler(commands=['start'])
 async def start(msg: types.Message):
@@ -237,31 +248,40 @@ async def main_menu(msg: types.Message):
                            (msg.from_user.id, ))
             .fetchall()[0][0].split()[0][-2:])
 
-        now_date = datetime.now(pytz.timezone("Europe/Moscow")) + \
-            timedelta(hours=delta)
-        day = now_date.strftime('%d.%m.%Y')
-        # day = "26.10.2023"
+        # now_date = datetime.now(pytz.timezone("Europe/Moscow")) + \
+        #     timedelta(hours=delta)
+        # day = now_date.strftime('%d.%m.%Y')
+        day = "26.10.2023"
 
         dt = datetime.strptime(day, '%d.%m.%Y')
         start = dt - timedelta(days=dt.weekday())
-        end = start + timedelta(days=6)
 
-        send_text = f"Расписание на {start.strftime('%d.%m.%Y')} " +\
-            f"- {end.strftime('%d.%m.%Y')}:"
+        send_text = "Твоё расписание на эту неделю📝\n"
+
+        tt = {}
 
         for i in range(7):
             new_date = start + timedelta(days=i)
             events = timetable_on_date(new_date.date(), cursor)
 
+            wd = f"\n✅ {new_date.date().strftime('%d.%m')} " +\
+                f"({WEEKDAYS[new_date.weekday()]})\n"
+
+            temp_output = ""
+
             for e in events:
                 name, ts, te, cl = e
-                user_class = cursor.execute("""SELECT class FROM
-                                            UsersInfo WHERE tg_id=?""",
-                                            (msg.from_user.id, ))\
-                    .fetchall()[0][0]
-                if user_class in cl:
-                    send_text += f"\nНазвание: {name}"
-                    send_text += f"\nВремя: {ts} - {te}\n"
+                user_data = cursor.execute("""SELECT class, subjects FROM
+                                           UsersInfo WHERE tg_id=?""",
+                                           (msg.from_user.id, ))\
+                    .fetchall()[0]
+                if user_data[0] in cl and name in user_data[1]:
+                    temp_output += (f"{' ' * 7}• {name} ({ts} - {te})\n")
+
+            tt[wd] = temp_output
+
+        sep = "—" * 8
+        send_text += sep.join([e + tt[e] for e in tt if tt[e]])
 
         await bot.send_message(msg.from_user.id, send_text)
 
