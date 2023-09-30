@@ -5,9 +5,12 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
 import sqlite3
+from datetime import datetime, timedelta
+import pytz
 
 from modules.markups import *
 from modules.config_reader import config
+from timechecker import timetable_on_date
 
 # Объект бота
 TOKEN = config.bot_token.get_secret_value()
@@ -19,7 +22,7 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 dp.middleware.setup(LoggingMiddleware())
 
 # Подгружаем БД
-conn = sqlite3.connect('res/data/EnginerSchool_test7Class.db')
+conn = sqlite3.connect('res/data/EnginerSchool.db')
 cursor = conn.cursor()
 
 
@@ -226,16 +229,52 @@ async def main_menu(msg: types.Message):
             f"Часовой пояс: {users_data[0][4]}\n\n" +
             "Предметы:\n- " + '\n- '.join(users_data[0][3].split(";"))
             )
+
     elif msg.text == 'Мое рассписание 📅':
-        await bot.send_message(msg.from_user.id, "Рассписание пользователя")
+        delta = int(
+            cursor.execute("""SELECT timezone
+                           FROM UsersInfo WHERE tg_id=?""",
+                           (msg.from_user.id, ))
+            .fetchall()[0][0].split()[0][-2:])
+
+        now_date = datetime.now(pytz.timezone("Europe/Moscow")) + \
+            timedelta(hours=delta)
+        day = now_date.strftime('%d.%m.%Y')
+        # day = "26.10.2023"
+
+        dt = datetime.strptime(day, '%d.%m.%Y')
+        start = dt - timedelta(days=dt.weekday())
+        end = start + timedelta(days=6)
+
+        send_text = f"Расписание на {start.strftime('%d.%m.%Y')} " +\
+            f"- {end.strftime('%d.%m.%Y')}:"
+
+        for i in range(7):
+            new_date = start + timedelta(days=i)
+            events = timetable_on_date(new_date.date(), cursor)
+
+            for e in events:
+                name, ts, te, cl = e
+                user_class = cursor.execute("""SELECT class FROM
+                                            UsersInfo WHERE tg_id=?""",
+                                            (msg.from_user.id, ))\
+                    .fetchall()[0][0]
+                if user_class in cl:
+                    send_text += f"\nНазвание: {name}"
+                    send_text += f"\nВремя: {ts} - {te}\n"
+
+        await bot.send_message(msg.from_user.id, send_text)
+
     elif msg.text == 'Настройки ⚙️':
         await bot.send_message(msg.from_user.id, "Настройки",
                                reply_markup=settingsMenu)
+
     elif msg.text == 'Сбросить параметры аккаунта 🔄':
         cursor.execute("""DELETE FROM usersInfo WHERE tg_id=?""",
                        (msg.from_user.id,))
         conn.commit()
         await start(user_msg)
+
     elif msg.text == 'Вернуться назад 🔙':
         await bot.send_message(msg.from_user.id, "Главное меню",
                                reply_markup=mainMenu)

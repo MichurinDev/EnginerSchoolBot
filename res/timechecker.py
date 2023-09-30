@@ -7,7 +7,10 @@ import asyncio
 import pytz
 
 
-async def timetable_on_date(date: date, cursor: sqlite3.Cursor):
+def timetable_on_date(date: date, cursor: sqlite3.Cursor):
+    """Возвращает множество кортежей
+    (название, время начала, время конца, параллель (она-же класс))"""
+
     return cursor.execute("""SELECT subject, start_time, end_time,
                           class FROM Timetable WHERE date=?""",
                           (date.strftime("%d.%m.%Y"), )).fetchall()
