@@ -59,19 +59,30 @@ async def mornind_and_evening_notifycations(moscow_time: datetime):
                     send_text += "📝 Твоё расписание на " +\
                         f"{d.strftime('%d.%m.%Y')}:"
 
-                    # Перебираем расписание
-                    for e in timetable:
-                        # Если класс пользователя находится в приглашенных и
-                        # название урокак находится в указанных пользователем
-                        if user[1] in e[3] and e[0] in user[2]:
-                            # Формируем текст для отправки
-                            send_text += f"\n{' ' * 7}" +\
-                                f"• Название: {e[0]}"
-                            send_text += f"\n{' ' * 7}• Время: " +\
-                                f"{e[1]} - {e[2]}\n"
+                    if timetable:
+                        # Перебираем расписание
+                        for e in timetable:
+                            # Если класс пользователя находится в приглашенных
+                            # и название урокак находится
+                            # в указанных пользователем
+                            if user[1] in e[3] and e[0] in user[2]:
+                                time_start = \
+                                    (datetime.strptime(e[1], "%H:%M") +
+                                     timedelta(hours=delta_msk))\
+                                    .strftime("%H:%M")
+                                time_end = \
+                                    (datetime.strptime(e[2], "%H:%M") +
+                                     timedelta(hours=delta_msk))\
+                                    .strftime("%H:%M")
 
-                    # Отправляем сообщение
-                    send_notify(TOKEN, send_text, user[0])
+                                # Формируем текст для отправки
+                                send_text += f"\n{' ' * 7}" +\
+                                    f"• Название: {e[0]}"
+                                send_text += f"\n{' ' * 7}• Время: " +\
+                                    f"{time_start} - {time_end}\n"
+
+                        # Отправляем сообщение
+                        send_notify(TOKEN, send_text, user[0])
 
 
 async def checkSubjects(moscow_datetime):
@@ -103,8 +114,8 @@ async def checkSubjects(moscow_datetime):
 async def checkTime():
     while True:
         # Время сейчас для тестов
-        current_time = datetime.now(pytz.timezone("Europe/Moscow")).time()
-        # current_time = datetime(2023, 10, 1, 5, 00)
+        # current_time = datetime.now(pytz.timezone("Europe/Moscow")).time()
+        current_time = datetime(2023, 10, 1, 5, 00)
 
         if current_time.minute == 45:
             await checkSubjects(current_time)

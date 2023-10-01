@@ -270,6 +270,14 @@ async def main_menu(msg: types.Message):
 
             for e in events:
                 name, ts, te, cl = e
+                ts = \
+                    (datetime.strptime(e[1], "%H:%M") +
+                        timedelta(hours=delta))\
+                    .strftime("%H:%M")
+                te = \
+                    (datetime.strptime(e[2], "%H:%M") +
+                        timedelta(hours=delta))\
+                    .strftime("%H:%M")
                 user_data = cursor.execute("""SELECT class, subjects FROM
                                            UsersInfo WHERE tg_id=?""",
                                            (msg.from_user.id, ))\
