@@ -7,8 +7,7 @@ from aiogram import Bot, types, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, ParseMode, \
-    ContentType
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, ParseMode
 
 import sqlite3
 import json
@@ -49,13 +48,7 @@ conn = sqlite3.connect('res/data/PoleOfKnowledge_db.db')
 cursor = conn.cursor()
 
 buttons = [
-    'Сменить город',
-    'Отправить сообщение участникам форума',
-    'Выгрузить список участников воркшопов',
-    'Список команд для квеста',
-    'Рейтинг мероприятий',
-    'Открыть/закрыть запись на воркшопы',
-    'Сообщения в поддержку'
+    'Отправить сообщение участникам форума'
 ]
 
 user_city = ""

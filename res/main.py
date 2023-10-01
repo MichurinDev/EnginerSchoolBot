@@ -14,7 +14,6 @@ from timechecker import timetable_on_date
 
 # Объект бота
 TOKEN = config.bot_token.get_secret_value()
-ADMIN_TOKEN = config.admin_bot_token.get_secret_value()
 
 bot = Bot(token=TOKEN)
 # Диспетчер
