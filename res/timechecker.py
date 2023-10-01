@@ -52,12 +52,12 @@ async def mornind_and_evening_notifycations(moscow_time: datetime):
                     # Поучаем расписание
                     if hour == times[0]:
                         timetable = timetable_on_date(d, cursor)
+                        send_text = "Доброе утро ☀️\nУ тебя сегодня:"
                     elif hour == times[1]:
                         d += timedelta(days=1)
                         timetable = timetable_on_date(d, cursor)
-
-                    send_text += "📝 Твоё расписание на " +\
-                        f"{d.strftime('%d.%m.%Y')}:"
+                        send_text = "Добрый вечер 🤗\n" +\
+                            "Не забудь что завтра у тебя:"
 
                     if timetable:
                         # Перебираем расписание
@@ -77,9 +77,15 @@ async def mornind_and_evening_notifycations(moscow_time: datetime):
 
                                 # Формируем текст для отправки
                                 send_text += f"\n{' ' * 7}" +\
-                                    f"• Название: {e[0]}"
-                                send_text += f"\n{' ' * 7}• Время: " +\
+                                    f"• {e[0]}"
+                                send_text += f"\n{' ' * 10}Время: " +\
                                     f"{time_start} - {time_end}\n"
+
+                        # Дописываем конец предложения
+                        if hour == times[0]:
+                            send_text += "\nПродуктивного дня 🎯"
+                        elif hour == times[1]:
+                            send_text += "\nХорошего отдыха 🌙"
 
                         # Отправляем сообщение
                         send_notify(TOKEN, send_text, user[0])
@@ -107,15 +113,18 @@ async def checkSubjects(moscow_datetime):
             # и его класс приглешен
             if subj[0] in user[1] and user[2] in subj[1]:
                 # Отправляем уведомление
-                send_text = f"❗Через 15 минут начинается урок {subj[0]}"
+                send_text = "Не забудь что через 15 минут у тебя " +\
+                                f"начинается занятие 👨‍🏫\n• {subj[0]}\n" +\
+                                "Продуктивной учебы 💯"
                 send_notify(TOKEN, send_text, user[0])
 
 
 async def checkTime():
     while True:
         # Время сейчас для тестов
-        # current_time = datetime.now(pytz.timezone("Europe/Moscow")).time()
-        current_time = datetime(2023, 10, 1, 5, 00)
+        current_time = datetime.now(pytz.timezone("Europe/Moscow")).time()
+        # current_time = datetime(2023, 10, 1, 5, 00)
+        # current_time = datetime(2023, 10, 1, 4, 45)
 
         if current_time.minute == 45:
             await checkSubjects(current_time)

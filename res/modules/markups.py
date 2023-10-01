@@ -52,7 +52,7 @@ btnMain = KeyboardButton("Главное меню")
 
 # --- Главное меню ---
 btnProfile = KeyboardButton("Мой профиль 🎓")
-btninquiry = KeyboardButton("Мое рассписание 📅")
+btninquiry = KeyboardButton("Мое расписание 📅")
 btnSettings = KeyboardButton("Настройки ⚙️")
 mainMenu = ReplyKeyboardMarkup(resize_keyboard=True)\
     .add(btnProfile, btninquiry)\

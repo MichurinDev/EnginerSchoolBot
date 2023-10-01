@@ -230,17 +230,18 @@ async def main_menu(msg: types.Message):
         users_data = cursor.execute("""SELECT name, type, class, subjects,
                                     timeZone FROM UsersInfo WHERE tg_id=?""",
                                     (msg.from_user.id,)).fetchall()
+
         await bot.send_message(
             msg.from_user.id,
-            "Данные профиля\n\n" +
-            f"ФИО: {users_data[0][0]}\n" +
-            f"Тип пользователя: {users_data[0][1]}\n" +
-            f"Класс: {users_data[0][2]}\n" +
-            f"Часовой пояс: {users_data[0][4]}\n\n" +
-            "Предметы:\n- " + '\n- '.join(users_data[0][3].split(";"))
+            "Данные профиля 🎓\n\n" +
+            f"🏷️ФИО: {users_data[0][0]}\n" +
+            f"📊Тип пользователя: {users_data[0][1]}\n" +
+            f"👨‍🎓Класс: {users_data[0][2]}\n" +
+            f"🕓Часовой пояс: {users_data[0][4]}\n\n" +
+            "📚Предметы:\n- " + '\n- '.join(users_data[0][3].split(";"))
             )
 
-    elif msg.text == 'Мое рассписание 📅':
+    elif msg.text == 'Мое расписание 📅':
         delta = int(
             cursor.execute("""SELECT timezone
                            FROM UsersInfo WHERE tg_id=?""",
@@ -283,9 +284,10 @@ async def main_menu(msg: types.Message):
                                            (msg.from_user.id, ))\
                     .fetchall()[0]
                 if user_data[0] in cl and name in user_data[1]:
-                    temp_output += (f"{' ' * 7}• {name} ({ts} - {te})\n")
+                    temp_output += f"{' ' * 7}• {name}\n{' ' * 10}" +\
+                        f"Время: {ts} - {te}\n\n"
 
-            tt[wd] = temp_output
+            tt[wd] = temp_output[:-1]
 
         sep = "—" * 8
         send_text += sep.join([e + tt[e] for e in tt if tt[e]])
