@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime, date, time
+from datetime import timedelta, datetime, date
 import sqlite3
 from modules.markups import *
 from modules.SendNotify import send_notify
@@ -16,106 +16,104 @@ def timetable_on_date(date: date, cursor: sqlite3.Cursor):
                           (date.strftime("%d.%m.%Y"), )).fetchall()
 
 
-async def mornind_and_evening_notifycations():
-    _isSend = False
+async def mornind_and_evening_notifycations(moscow_time: datetime):
+    # Часы утренних и вечерних уведомлений
+    times = ["09", "17"]
 
-    while True:
-        # moscow_time = datetime.now(pytz.timezone('Europe/Moscow'))
-        moscow_time = datetime(2023, 10, 28, 9)
-        # moscow_time = datetime(2023, 10, 26, 17)
+    # Перебираем часовые пояса
+    for tz in TimeZonesList:
+        # Берем разницу времени с Мск
+        delta_msk = [int(tz.split()[0][-2])][0]
 
-        if moscow_time.time().minute == 0:
-            if not _isSend:
-                # Подгружаем БД
-                conn = sqlite3.connect('res/data/EnginerSchool.db')
-                cursor = conn.cursor()
+        # Получаем актуальное время в часовом поясе tz
+        new_time = moscow_time + timedelta(hours=delta_msk)
 
-                times = ["09", "17"]
+        # Получаем из datetime -> date, time
+        d = new_time.date()
+        t = new_time.time().strftime("%H:%M")
 
-                for tz in TimeZonesList:
-                    delta_msk = [int(tz.split()[0][-1])
-                                 if tz.split()[0][-2] == "+"
-                                 else -int(tz.split()[0][-1])][0]
-                    new_time = moscow_time + timedelta(hours=delta_msk)
+        # Извлекаем кол-во часов
+        hour = t.split(":")[0]
 
-                    d = new_time.date()
-                    t = new_time.time().strftime("%H:%M")
-                    hour = t.split(":")[0]
+        # Если это время входит в утреннюю или вечернюю рассылку
+        if hour in times:
+            # Берем всех пользователей с этим часовыым поясом
+            users = cursor.execute(f"""SELECT tg_id, class
+                                   FROM UsersInfo
+                                   WHERE timezone=?""",
+                                   (tz,)).fetchall()
 
-                    if hour in times:
-                        users = cursor.execute(f"""SELECT tg_id, class
-                                               FROM UsersInfo
-                                               WHERE timezone=?""",
-                                               (tz,)).fetchall()
+            # Если такие есть
+            if users:
+                # Перебираем пользователей
+                for user in users:
+                    send_text = ""
 
-                        if users:
-                            for user in users:
-                                send_text = ""
+                    # Поучаем расписание
+                    if hour == times[0]:
+                        timetable = timetable_on_date(d, cursor)
+                    elif hour == times[1]:
+                        d += timedelta(days=1)
+                        timetable = timetable_on_date(d, cursor)
 
-                                if hour == times[0]:
-                                    timetable = timetable_on_date(d, cursor)
-                                elif hour == times[1]:
-                                    d += timedelta(days=1)
-                                    timetable = timetable_on_date(d, cursor)
+                    # Берем только те уроки,
+                    # на которые зарегистрирован пользователь
+                    timetable = list(filter(
+                        lambda x: user[1] in x[3], timetable))
 
-                                timetable = list(filter(
-                                    lambda x: user[1] in x[3], timetable))
+                    # Если такие уроки есть
+                    if timetable:
+                        # Формируем текст для отправки
+                        send_text += "📝 Твоё расписание на " +\
+                            f"{d.strftime('%d.%m.%Y')}:"
 
-                                if timetable:
-                                    send_text += "📝 Твоё расписание на " +\
-                                        f"{d.strftime('%d.%m.%Y')}:"
-                                    for event in timetable:
-                                        send_text += f"\n{' ' * 7}" +\
-                                            f"•Название: {event[0]}"
-                                        send_text += "\nВремя: " +\
-                                            f"{event[1]} - {event[2]}\n"
+                        for event in timetable:
+                            send_text += f"\n{' ' * 7}" +\
+                                f"•Название: {event[0]}"
+                            send_text += "\nВремя: " +\
+                                f"{event[1]} - {event[2]}\n"
 
-                                    send_notify(TOKEN, send_text, user[0])
-                _isSend = True
-        else:
-            _isSend = False
+                        # Отправляем сообщение
+                        send_notify(TOKEN, send_text, user[0])
+                        print("Отправка")
 
 
 async def checkSubjects():
-    usersGoNotification = []
-    spisSubFoNotification = []
+    SubjListForNotification = []
 
     # --- --- Москвоское время + 15 мин---
     time_now = datetime.now(pytz.timezone("Europe/Moscow")) + \
-        timedelta(minutes=15)
-    date_now = datetime.now(pytz.timezone("Europe/Moscow"))
-    time_now_str = time_now.strftime("%H:%M")
-    date_now_str = date_now.strftime("%d.%m.20%y")
+        timedelta(minutes=15).strftime("%H:%M")
 
-    for strSubj in cursor.execute("SELECT * FROM Timetable").fetchall():
-        if strSubj[2] == date_now_str and strSubj[4] == time_now_str:
-            # Наполняем список предметов через 15 минут
-            spisSubFoNotification.append([strSubj[0], strSubj[1]])
+    # Уроки, которые начинаются в это время
+    SubjListForNotification = \
+        list(map(lambda x: x[0],
+                 cursor.execute("""SELECT subject
+                                FROM Timetable WHERE start_time=?""",
+                                (time_now,)).fetchall()))
 
-    for strUsers in cursor.execute("SELECT * FROM UsersInfo").fetchall():
-        for subj in spisSubFoNotification:
-            if strUsers[3] in subj[1] and subj[0] in strUsers[4]:
-                # Наполняем список учеников кому отправлять через 15 минут
-                usersGoNotification.append([strUsers[0], subj[0]])
-
-    # Тут лежит список [id, предмет] нужно отправить уведомление
-    # данным пользователям о том что у них этот предмет через 15 минут
-    for user in usersGoNotification:
-        send_text = f"Через 15 минут начаинается урок {user[1]}"
-        send_notify(TOKEN, send_text, user[0])
+    # Перебираем всех пользователей
+    for user in cursor.execute("SELECT tg_id, subjects FROM UsersInfo")\
+            .fetchall():
+        # Перебираем все полученные предметы
+        for subj in SubjListForNotification:
+            # Если пользователь зарегистрирован на урок
+            if subj in user[1]:
+                # Отправляем уведомление
+                send_text = f"Через 15 минут начинается урок {user[1]}"
+                send_notify(TOKEN, send_text, user[0])
 
 
 async def checkTime():
     while True:
         # Время сейчас для тестов
         current_time = datetime.now(pytz.timezone("Europe/Moscow")).time()
-
         # current_time = time(9, 0, 0)
 
         if current_time.minute == 45:
             await checkSubjects()
         elif current_time.minute == 0:
-            await mornind_and_evening_notifycations()
+            await mornind_and_evening_notifycations(current_time)
         await asyncio.sleep(60)
 
 
@@ -123,7 +121,12 @@ async def on_startup():
     asyncio.create_task(checkTime())
 
 
+# Токен клиентского бота
 TOKEN = config.bot_token.get_secret_value()
+
+# Подгружаем БД
+conn = sqlite3.connect('res/data/EnginerSchool.db')
+cursor = conn.cursor()
 
 if __name__ == '__main__':
     print("Отправитель сообщений запущен...")
