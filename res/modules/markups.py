@@ -12,16 +12,9 @@ START_TEXT = \
 Здравствуйте!
 """
 
-MENU_TEXT = \
-    """
-Выберите действие:
-"""
+MENU_TEXT = "Выберите действие 🚀"
 
-ACQUAINTANCE_TEXT = \
-    """
-Давайте познакомимся!
-Введите своё ФИО (отчество при его наличии)
-"""
+ACQUAINTANCE_TEXT = "Выберите класс 👨‍🎓"
 
 HELP_TEXT = \
     """
@@ -103,20 +96,7 @@ buttons = {
     classes[1]: [InlineKeyboardButton(
         SubjectsList[0],
         callback_data=SubjectsList[0])],
-    classes[2]: [InlineKeyboardButton(
-        SubjectsList[0],
-        callback_data=SubjectsList[0])],
-    classes[3]: [InlineKeyboardButton(
-        SubjectsList[0],
-        callback_data=SubjectsList[0])],
-    classes[4]: [InlineKeyboardButton(
-        SubjectsList[0],
-        callback_data=SubjectsList[0])],
-    classes[5]: [InlineKeyboardButton(
-        SubjectsList[0],
-        callback_data=SubjectsList[0])],
-
-    classes[6]: [
+    classes[2]: [
         InlineKeyboardButton(SubjectsList[1],
                              callback_data=SubjectsList[1]),
         InlineKeyboardButton(SubjectsList[2],
@@ -132,7 +112,7 @@ buttons = {
         InlineKeyboardButton(SubjectsList[7],
                              callback_data=SubjectsList[7])
         ],
-    classes[7]: [
+    classes[3]: [
         InlineKeyboardButton(SubjectsList[1],
                              callback_data=SubjectsList[1]),
         InlineKeyboardButton(SubjectsList[2],
@@ -152,7 +132,7 @@ buttons = {
         InlineKeyboardButton(SubjectsList[7],
                              callback_data=SubjectsList[7])
     ],
-    classes[8]: [
+    classes[4]: [
         InlineKeyboardButton(SubjectsList[1],
                              callback_data=SubjectsList[1]),
         InlineKeyboardButton(SubjectsList[2],
@@ -174,7 +154,7 @@ buttons = {
         InlineKeyboardButton(SubjectsList[10],
                              callback_data=SubjectsList[10])
     ],
-    classes[9]: [
+    classes[5]: [
         InlineKeyboardButton(SubjectsList[3],
                              callback_data=SubjectsList[3]),
         InlineKeyboardButton(SubjectsList[4],
@@ -190,7 +170,7 @@ buttons = {
         InlineKeyboardButton(SubjectsList[14],
                              callback_data=SubjectsList[14])
     ],
-    classes[10]: [
+    classes[6]: [
         InlineKeyboardButton(SubjectsList[15],
                              callback_data=SubjectsList[15]),
         InlineKeyboardButton(SubjectsList[16],

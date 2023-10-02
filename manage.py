@@ -24,7 +24,7 @@ def sturtup_timechecker():
         os.system("python res/timechecker.py")
 
 
-os.system("pip install -r requirements.txt")
+# os.system("pip install -r requirements.txt")
 
 client = Thread(target=sturtup_client_bot)
 client.start()

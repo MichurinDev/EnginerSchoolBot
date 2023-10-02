@@ -19,7 +19,7 @@ def timetable_on_date(date: date, cursor: sqlite3.Cursor):
 
 async def mornind_and_evening_notifycations(moscow_time: datetime):
     # Часы утренних и вечерних уведомлений
-    times = ["09", "17"]
+    times = ["10", "19"]
 
     # Перебираем часовые пояса
     for tz in TimeZonesList:
@@ -91,7 +91,7 @@ async def mornind_and_evening_notifycations(moscow_time: datetime):
                         send_notify(TOKEN, send_text, user[0])
 
 
-async def checkSubjects(moscow_datetime):
+async def checkSubjects(moscow_datetime: datetime):
     SubjListForNotification = []
 
     # --- --- Москвоское время + 15 мин---
@@ -122,7 +122,7 @@ async def checkSubjects(moscow_datetime):
 async def checkTime():
     while True:
         # Время сейчас для тестов
-        current_time = datetime.now(pytz.timezone("Europe/Moscow")).time()
+        current_time = datetime.now(pytz.timezone("Europe/Moscow"))
         # current_time = datetime(2023, 10, 1, 5, 00)
         # current_time = datetime(2023, 10, 1, 4, 45)
 
