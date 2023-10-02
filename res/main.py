@@ -92,12 +92,6 @@ async def help(msg: types.Message):
     await bot.send_message(msg.from_user.id, HELP_TEXT)
 
 
-@dp.message_handler(state=BotStates.GET_CLASS_STATE)
-async def restart(msg: types.Message):
-    if msg.text == "/start":
-        await start(msg)
-
-
 @dp.callback_query_handler(state=BotStates.GET_CLASS_STATE)
 async def get_class(callback_query: types.CallbackQuery):
     global _temp
@@ -119,12 +113,6 @@ async def get_class(callback_query: types.CallbackQuery):
     # Переходим на стадию выбора предметов
     state = dp.current_state(user=callback_query.from_user.id)
     await state.set_state(BotStates.GET_OBJECTS_STATE.state)
-
-
-@dp.message_handler(state=BotStates.GET_OBJECTS_STATE)
-async def restart(msg: types.Message):
-    if msg.text == "/start":
-        await start(msg)
 
 
 @dp.callback_query_handler(state=BotStates.GET_OBJECTS_STATE)
@@ -185,12 +173,6 @@ async def get_objects(callback_query: types.CallbackQuery):
         # Переходим на стадию выбора часового пояса
         state = dp.current_state(user=callback_query.from_user.id)
         await state.set_state(BotStates.GET_TIMEZONE_STATE.state)
-
-
-@dp.message_handler(state=BotStates.GET_TIMEZONE_STATE)
-async def restart(msg: types.Message):
-    if msg.text == "/start":
-        await start(msg)
 
 
 @dp.callback_query_handler(state=BotStates.GET_TIMEZONE_STATE)
