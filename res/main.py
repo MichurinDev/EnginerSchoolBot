@@ -61,7 +61,8 @@ async def start(msg: types.Message):
 
     # Берём список всех зарегистрированных пользователей с выборков по ID
     user_by_tgID = cursor.execute(f''' SELECT class FROM UsersInfo
-                           WHERE tg_id={msg.from_user.id}''').fetchall()
+                                  WHERE tg_id=?''',
+                                  (msg.from_user.id,)).fetchall()
 
     state = dp.current_state(user=msg.from_user.id)
 
@@ -80,7 +81,7 @@ async def start(msg: types.Message):
 
         _temp = None
 
-        # Переходим на стадию ввода ФИО
+        # Переходим на стадию ввода класса
         await bot.send_message(msg.from_user.id, ACQUAINTANCE_TEXT,
                                reply_markup=keyboard)
         await state.set_state(BotStates.GET_CLASS_STATE.state)
@@ -211,7 +212,7 @@ async def main_menu(msg: types.Message):
         await help(msg)
     elif msg.text == 'Мой профиль 🎓':
         users_data = cursor.execute("""SELECT type, class, subjects,
-                                    timeZone FROM UsersInfo WHERE tg_id=?""",
+                                    timeZone FROM UsersInfo WHERE tg_id=? """,
                                     (msg.from_user.id,)).fetchall()
 
         await bot.send_message(
@@ -226,7 +227,7 @@ async def main_menu(msg: types.Message):
     elif msg.text == 'Мое расписание 📅':
         delta = int(
             cursor.execute("""SELECT timezone
-                           FROM UsersInfo WHERE tg_id=?""",
+                           FROM UsersInfo WHERE tg_id=? AND type="Ученик" """,
                            (msg.from_user.id, ))
             .fetchall()[0][0].split()[0][-2:])
 
@@ -262,9 +263,9 @@ async def main_menu(msg: types.Message):
                         timedelta(hours=delta))\
                     .strftime("%H:%M")
                 user_data = cursor.execute("""SELECT class, subjects FROM
-                                           UsersInfo WHERE tg_id=?""",
-                                           (msg.from_user.id, ))\
-                    .fetchall()[0]
+                                           UsersInfo WHERE tg_id=?
+                                           AND type="Ученик" """,
+                                           (msg.from_user.id, )).fetchall()[0]
                 if user_data[0] in cl and name in user_data[1]:
                     temp_output += f"{' ' * 7}• {name}\n{' ' * 10}" +\
                         f"Время: {ts} - {te}\n\n"

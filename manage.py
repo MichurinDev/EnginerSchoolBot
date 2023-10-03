@@ -10,11 +10,11 @@ def sturtup_client_bot():
         os.system("python res/main.py")
 
 
-# def sturtup_admin_bot():
-#     if platform == "linux" or platform == "linux2":
-#         os.system("python3 res/admin_bot.py")
-#     elif platform == "win32":
-#         os.system("python res/admin_bot.py")
+def sturtup_admin_bot():
+    if platform == "linux" or platform == "linux2":
+        os.system("python3 res/admin_bot.py")
+    elif platform == "win32":
+        os.system("python res/admin_bot.py")
 
 
 def sturtup_timechecker():
@@ -29,8 +29,8 @@ def sturtup_timechecker():
 client = Thread(target=sturtup_client_bot)
 client.start()
 
-# admin = Thread(target=sturtup_admin_bot)
-# admin.start()
+admin = Thread(target=sturtup_admin_bot)
+admin.start()
 
 timechecker = Thread(target=sturtup_timechecker)
 timechecker.start()
