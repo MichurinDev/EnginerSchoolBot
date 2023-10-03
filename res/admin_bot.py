@@ -341,65 +341,13 @@ async def home(msg: types.Message):
 
 # Отправка сообщений участникам форума от лица "клиентского" бота
 @dp.message_handler(state=BotStates.SEND_MESSAGE_STATE)
-async def send_msg_to_users(msg: types.Message):
-    if msg.text != "В главное меню":
-        if msg.text != "Шаблоны":
-            # Список ID зарегистрированных пользователей
-            users = cursor.execute('''SELECT tg_id FROM UsersInfo
-                                   WHERE city=? AND tg_id <> ?''',
-                                   (user_city, "None")).fetchall()
-
-            await bot.send_message(msg.from_user.id, "Отправка...")
-
-            # Перебираем ID зарегистрированных пользоателей
-            for user in users:
-                if user != msg.from_user.id:
-                    # Отправляем сообщение пользователю
-                    send_notify(token=TOKEN, msg=msg.text, chatId=user[0])
-
-            await bot.send_message(msg.from_user.id, "Сообщение отправлено!")
-
-            # Выходим в главное меню
-            state = dp.current_state(user=msg.from_user.id)
-            await state.set_state(BotStates.HOME_STATE.state)
-            await start(msg)
-        else:
-            await bot.send_message(msg.from_user.id, NOTIFY_PATTERN_TEXT,
-                                   parse_mode=ParseMode.HTML)
+async def send_msg_to_users(msg: types.CallbackQuery):
+    if msg.data != "В главное меню":
+        user_class = msg.data
+        users = cursor.execute("""SELECT tg_id FROM UsersInfo
+                               WHERE type="Ученик" AND class=?""",
+                               (user_class))
     else:
-        # Выходим в главное меню
-        state = dp.current_state(user=msg.from_user.id)
-        await state.set_state(BotStates.HOME_STATE.state)
-        await start(msg)
-
-
-@dp.message_handler(state=BotStates.CHOICE_EVENT_STATE)
-async def get_parts_by_event_title(msg: types.Message):
-    if msg.text != "В главное меню":
-        # Читаем JSON-файл с участниками мероприятий
-        with open('./res/data/participants_of_events.json',
-                  'r', encoding='utf-8') as participants_of_events:
-            # Читаем файл
-            data = json.load(participants_of_events)
-
-        if msg.text in data[user_city]:
-            # Список ID участников мероприятия
-            participants = data[user_city][msg.text]
-            # ФИО участников мерпориятия по ID: [ФИО1, ФИО2...]
-            usernames = [x[0] for x in cursor.execute(
-                f''' SELECT name FROM UsersInfo
-                WHERE id in ({','.join(list(map(str, participants)))})'''
-                ).fetchall()]
-
-            # Формируем сообщение
-            send_text = f"Участники мероприятия \"{msg.text}\" " + \
-                f"({len(usernames)} человек):"
-            for user in usernames:
-                send_text += f"\n- {user}"
-
-            # Отправляем сообщение
-            await bot.send_message(msg.from_user.id, send_text)
-        else:
             await bot.send_message(msg.from_user.id,
                                    f"На мероприятие \"{msg.text}\" еще никто" +
                                    " не зарегистрировался!")
