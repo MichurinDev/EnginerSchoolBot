@@ -290,6 +290,9 @@ async def main_menu(msg: types.Message):
         await bot.send_message(msg.from_user.id, "Главное меню",
                                reply_markup=mainMenu)
 
+    elif msg.text == "Инструкция ❓":
+        await bot.send_message(msg.from_user.id, HELP_TEXT)
+
 
 if __name__ == "__main__":
     print("Бот запущен...")
