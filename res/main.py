@@ -15,6 +15,7 @@ from timechecker import timetable_on_date
 # Объект бота
 TOKEN = config.bot_token.get_secret_value()
 
+
 bot = Bot(token=TOKEN)
 # Диспетчер
 dp = Dispatcher(bot, storage=MemoryStorage())
@@ -77,7 +78,8 @@ async def start(msg: types.Message):
         # Отправляем текст с предложением ввести класс
         await bot.send_message(
             msg.from_user.id,
-            START_TEXT, reply_markup=types.ReplyKeyboardRemove())
+            START_TEXT, reply_markup=types.ReplyKeyboardRemove(),
+            parse_mode=types.ParseMode.HTML)
 
         _temp = None
 
@@ -234,7 +236,6 @@ async def main_menu(msg: types.Message):
         now_date = datetime.now(pytz.timezone("Europe/Moscow")) + \
             timedelta(hours=delta)
         day = now_date.strftime('%d.%m.%Y')
-        # day = "26.10.2023"
 
         dt = datetime.strptime(day, '%d.%m.%Y')
         start_date = dt - timedelta(days=dt.weekday())
@@ -242,6 +243,8 @@ async def main_menu(msg: types.Message):
         send_text = "Твоё расписание на эту неделю 📝\n"
 
         tt = {}
+
+        has_schedule = False
 
         for i in range(7):
             new_date = start_date + timedelta(days=i)
@@ -269,11 +272,16 @@ async def main_menu(msg: types.Message):
                 if user_data[0] in cl and name in user_data[1]:
                     temp_output += f"{' ' * 7}• {name}\n{' ' * 10}" +\
                         f"Время: {ts} - {te}\n\n"
+                    # Устанавливаем флаг has_schedule в True,
+                    # так как есть расписание
+                    has_schedule = True
 
             tt[wd] = temp_output[:-1]
-
         sep = "—" * 8
-        send_text += sep.join([e + tt[e] for e in tt if tt[e]])
+        if has_schedule:
+            send_text += sep.join([e + tt[e] for e in tt if tt[e]])
+        else:
+            send_text = "НА этой неделе у Вас нет занятий!"
 
         await bot.send_message(msg.from_user.id, send_text)
 
