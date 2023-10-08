@@ -281,7 +281,7 @@ async def main_menu(msg: types.Message):
         if has_schedule:
             send_text += sep.join([e + tt[e] for e in tt if tt[e]])
         else:
-            send_text = "НА этой неделе у Вас нет занятий!"
+            send_text = "На этой неделе у Вас нет занятий!"
 
         await bot.send_message(msg.from_user.id, send_text)
 

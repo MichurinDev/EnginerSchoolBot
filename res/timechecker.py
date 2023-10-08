@@ -116,8 +116,9 @@ async def checkSubjects(moscow_datetime: datetime):
                 if subj[0] in user[1] and user[2] in subj[1]:
                     # Отправляем уведомление
                     send_text = "Не забудь что через 15 минут у тебя " +\
-                                    f"начинается занятие 👨‍🏫\n• {subj[0]}\n" +\
-                                    "Продуктивной учебы 💯"
+                                    f"начинается занятие 👨‍🏫\n\n" +\
+                                    f"• {subj[0]}\n" +\
+                                    "\nПродуктивной учебы 💯"
                     send_notify(TOKEN, send_text, user[0])
 
 
@@ -125,14 +126,14 @@ async def checkTime():
     while True:
         # Время сейчас для тестов
         current_time = datetime.now(pytz.timezone("Europe/Moscow"))
-        # current_time = datetime(2023, 10, 1, 5, 00)
-        # current_time = datetime(2023, 10, 1, 4, 45)
+        # current_time = datetime(2023, 10, 1, 10, 00)
+        # current_time = datetime(2023, 10, 10, 13, 45)
 
         if current_time.minute == 45:
             await checkSubjects(current_time)
         elif current_time.minute == 0:
             await mornind_and_evening_notifycations(current_time)
-        await asyncio.sleep(15)
+        await asyncio.sleep(15 * 60)
 
 
 async def on_startup():
