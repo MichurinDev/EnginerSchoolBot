@@ -41,7 +41,7 @@ async def mornind_and_evening_notifycations(moscow_time: datetime):
             # Берем всех пользователей с этим часовыым поясом
             users = cursor.execute(f"""SELECT tg_id, class, subjects
                                    FROM UsersInfo
-                                   WHERE timezone=?""",
+                                   WHERE timezone=? AND type="Ученик" """,
                                    (tz,)).fetchall()
             # Если такие есть
             if users:
@@ -103,20 +103,22 @@ async def checkSubjects(moscow_datetime: datetime):
                                              FROM Timetable WHERE date=?
                                              AND start_time=?""",
                                              (date_now, time_now)).fetchall()
-
-    # Перебираем всех пользователей
-    for user in cursor.execute("SELECT tg_id, subjects, class FROM UsersInfo")\
-            .fetchall():
-        # Перебираем все полученные предметы
-        for subj in SubjListForNotification:
-            # Если пользователь зарегистрирован на урок
-            # и его класс приглешен
-            if subj[0] in user[1] and user[2] in subj[1]:
-                # Отправляем уведомление
-                send_text = "Не забудь что через 15 минут у тебя " +\
-                                f"начинается занятие 👨‍🏫\n• {subj[0]}\n" +\
-                                "Продуктивной учебы 💯"
-                send_notify(TOKEN, send_text, user[0])
+    users = cursor.execute("""SELECT tg_id, subjects,
+                           class FROM UsersInfo WHERE
+                           type="Ученик" """).fetchall()
+    if users:
+        # Перебираем всех пользователей
+        for user in users:
+            # Перебираем все полученные предметы
+            for subj in SubjListForNotification:
+                # Если пользователь зарегистрирован на урок
+                # и его класс приглешен
+                if subj[0] in user[1] and user[2] in subj[1]:
+                    # Отправляем уведомление
+                    send_text = "Не забудь что через 15 минут у тебя " +\
+                                    f"начинается занятие 👨‍🏫\n• {subj[0]}\n" +\
+                                    "Продуктивной учебы 💯"
+                    send_notify(TOKEN, send_text, user[0])
 
 
 async def checkTime():
@@ -130,7 +132,7 @@ async def checkTime():
             await checkSubjects(current_time)
         elif current_time.minute == 0:
             await mornind_and_evening_notifycations(current_time)
-        await asyncio.sleep(60)
+        await asyncio.sleep(15)
 
 
 async def on_startup():
