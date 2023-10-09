@@ -234,11 +234,10 @@ async def main_menu(msg: types.Message):
             )
 
     elif msg.text == 'Мое расписание 📅':
-        delta = int(
-            cursor.execute("""SELECT timezone
-                           FROM UsersInfo WHERE tg_id=? AND type="Ученик" """,
-                           (msg.from_user.id, ))
-            .fetchall()[0][0].split()[0][-2:])
+        tz = cursor.execute("""SELECT timezone
+                            FROM UsersInfo WHERE tg_id=? AND type="Ученик" """,
+                            (msg.from_user.id, )).fetchall()[0][0]
+        delta = int(tz.split()[0][-2:])
 
         now_date = datetime.now(pytz.timezone("Europe/Moscow")) + \
             timedelta(hours=delta)

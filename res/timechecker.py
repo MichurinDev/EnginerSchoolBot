@@ -133,7 +133,7 @@ async def checkTime():
             await checkSubjects(current_time)
         elif current_time.minute == 0:
             await mornind_and_evening_notifycations(current_time)
-        await asyncio.sleep(15 * 60)
+        await asyncio.sleep(60)
 
 
 async def on_startup():
