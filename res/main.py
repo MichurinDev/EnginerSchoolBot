@@ -37,7 +37,7 @@ class BotStates(StatesGroup):
 
 
 # Переменные для хранения временных данных
-_temp = None
+_temp = []
 user_msg = None
 
 
@@ -81,7 +81,7 @@ async def start(msg: types.Message):
             START_TEXT, reply_markup=types.ReplyKeyboardRemove(),
             parse_mode=types.ParseMode.HTML)
 
-        _temp = None
+        _temp = []
 
         # Переходим на стадию ввода класса
         await bot.send_message(msg.from_user.id, ACQUAINTANCE_TEXT,
@@ -100,7 +100,7 @@ async def get_class(callback_query: types.CallbackQuery):
     global _temp
 
     # Сохраняем класс
-    _temp = [callback_query.data]
+    _temp.append(callback_query.data)
 
     await bot.edit_message_reply_markup(
         chat_id=callback_query.message.chat.id,
@@ -189,20 +189,27 @@ async def get_timezone(callback_query: types.CallbackQuery):
         message_id=callback_query.message.message_id,
         reply_markup=None  # Это уберет старую клавиатуру
     )
-    await bot.send_message(
-        callback_query.from_user.id,
-        "Регистрация успешно завершена🥳"
-    )
 
-    # --- Создаём запись в БД ---
-    query = f"""INSERT INTO UsersInfo (tg_id, type, class, subjects, timezone)
-    VALUES (?, ?, ?, ?, ?)"""
-    cursor.execute(query, (user_msg.from_user.id, "Ученик",
-                           _temp[0], ";".join(_temp[1]), _temp[2]))
-    conn.commit()
+    try:
+        # --- Создаём запись в БД ---
+        query = f"""INSERT INTO UsersInfo (tg_id, type, class,
+        subjects, timezone) VALUES (?, ?, ?, ?, ?)"""
+        cursor.execute(query, (user_msg.from_user.id, "Ученик",
+                               _temp[0], ";".join(_temp[1]), _temp[2]))
+        conn.commit()
 
-    _temp = None
+        await bot.send_message(
+            callback_query.from_user.id,
+            "Регистрация успешно завершена🥳"
+            )
+    except Exception:
+        # sqlite3.IntegrityError
+        await bot.send_message(
+            callback_query.from_user.id,
+            "К сожалению, при регистрации произошла ошибка! Попробуйте заново"
+            )
 
+    _temp = []
     await start(user_msg)
 
 
