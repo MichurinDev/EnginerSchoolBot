@@ -97,7 +97,7 @@ async def mornind_and_evening_notifycations(moscow_time: datetime):
 async def checkSubjects(moscow_datetime: datetime):
     SubjListForNotification = []
 
-    # --- --- Москвоское время + 15 мин---
+    # --- Москвоское время + 15 мин  ---
     date_now = moscow_datetime.strftime("%d.%m.%Y")
     time_now = (moscow_datetime + timedelta(minutes=15)).strftime("%H:%M")
 
