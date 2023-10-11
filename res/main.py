@@ -38,6 +38,7 @@ class BotStates(StatesGroup):
 
 # Переменные для хранения временных данных
 _temp = []
+user_msg = None
 
 
 WEEKDAYS = {
@@ -54,7 +55,7 @@ WEEKDAYS = {
 # Хэндлер на команду /start
 @dp.message_handler(commands=['start'])
 async def start(msg: types.Message):
-    global _temp
+    global _temp, user_msg
 
     # Берём список всех зарегистрированных пользователей с выборков по ID
     user_by_tgID = cursor.execute(f''' SELECT class FROM UsersInfo
@@ -78,6 +79,7 @@ async def start(msg: types.Message):
             parse_mode=types.ParseMode.HTML)
 
         _temp = []
+        user_msg = msg
 
         # Переходим на стадию ввода класса
         await bot.send_message(msg.from_user.id, ACQUAINTANCE_TEXT,
@@ -190,7 +192,7 @@ async def get_timezone(callback_query: types.CallbackQuery):
         # --- Создаём запись в БД ---
         query = f"""INSERT INTO UsersInfo (tg_id, type, class,
         subjects, timezone) VALUES (?, ?, ?, ?, ?)"""
-        cursor.execute(query, (callback_query.message.from_user.id, "Ученик",
+        cursor.execute(query, (user_msg.from_user.id, "Ученик",
                                _temp[0], ";".join(_temp[1]), _temp[2]))
         conn.commit()
 
@@ -206,7 +208,7 @@ async def get_timezone(callback_query: types.CallbackQuery):
             )
 
     _temp = []
-    await start(callback_query.message)
+    await start(user_msg)
 
 
 @dp.message_handler(state=BotStates.HOME_STATE)
