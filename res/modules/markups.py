@@ -115,7 +115,8 @@ SubjectsList = [
     "Технологические уроки",
     "Математика ЕГЭ",
     "Физика ЕГЭ",
-    "Химия ЕГЭ"
+    "Химия ЕГЭ",
+    "Лайфхаки ЕГЭ"
 ]
 
 TimeZonesList = list(map(lambda x: x[0],
@@ -206,7 +207,9 @@ buttons = {
         InlineKeyboardButton(SubjectsList[13],
                              callback_data=SubjectsList[13]),
         InlineKeyboardButton(SubjectsList[14],
-                             callback_data=SubjectsList[14])
+                             callback_data=SubjectsList[14]),
+        InlineKeyboardButton(SubjectsList[15],
+                             callback_data=SubjectsList[15])
     ],
     classes[6]: [
         InlineKeyboardButton(SubjectsList[15],
@@ -222,7 +225,9 @@ buttons = {
         InlineKeyboardButton(SubjectsList[13],
                              callback_data=SubjectsList[13]),
         InlineKeyboardButton(SubjectsList[14],
-                             callback_data=SubjectsList[14])
+                             callback_data=SubjectsList[14]),
+        InlineKeyboardButton(SubjectsList[15],
+                             callback_data=SubjectsList[15])
     ]
 }
 
